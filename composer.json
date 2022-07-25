@@ -1,6 +1,6 @@
 
 {
-  "name": "Soporte-Tecnico-Tic/importador",
+  "name": "soporte-tecnico-tic/importador",
   "description": "Funcionalidad principal para importaciones",
   "type": "drupal-module-core",
   "minimum-stability": "dev",
