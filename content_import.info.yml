@@ -1,0 +1,7 @@
+type: module
+name: Content import
+package: Custom
+core: 8.x
+description: 'Import Content, user and taxonomies from excel.'
+core_version_requirement: ^8 || ^9
+configure: content_import.settings

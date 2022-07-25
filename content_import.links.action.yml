@@ -1,0 +1,6 @@
+content_import.add_entity_link:
+  route_name: content_import.add_entity
+  title: 'Add importer'
+  weight: -20
+  appears_on:
+    - content_import.settings

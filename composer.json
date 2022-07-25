@@ -1,0 +1,19 @@
+
+{
+  "name": "Soporte-Tecnico-Tic/importador",
+  "description": "Funcionalidad principal para importaciones",
+  "type": "drupal-module-core",
+  "minimum-stability": "dev",
+  "require": {
+    "php": ">=8.0",
+    "drupal/core": "^9"
+  },
+  "license": "GPL-2.0",
+  "authors": [
+    {
+      "name": "Soporte Técnico Tic",
+      "email": "juan@jumpintotech.com",
+      "role": "Developer"
+    }
+  ]
+}

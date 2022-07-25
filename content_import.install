@@ -1,0 +1,52 @@
+<?php
+
+use Drupal\Core\Database\Database;
+
+/**
+ * Implements hook_schema().
+ * @return array
+ */
+function content_import_schema() {
+  $schema = array();
+
+
+  $schema['content_import_list'] = array(
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+      ),
+      'updated' => array(
+        'type' => 'int',
+      ),
+      'name' => array(
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'file' => array(
+        'type' => 'int',
+      ),
+      'data_import' => array(
+        'type' => 'int',
+      ),
+      'element' => array(
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'type_element' => array(
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'last_import' => array(
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'fields' => array(
+        'type' => 'text',
+        'size' => 'big',
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+  return $schema;
+}

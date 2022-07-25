@@ -1,0 +1,27 @@
+content_import.settings:
+  path: '/admin/config/system/content-import'
+  defaults:
+    _controller: \Drupal\content_import\Controller\ContentImportController::viewImports
+    _title: 'View content import'
+  requirements:
+    _permission: 'access administration pages'
+  options:
+    _admin_route: TRUE
+content_import.add_entity:
+  path: '/admin/config/system/content-import/add'
+  defaults:
+    _title: 'Add content import'
+    _form: 'Drupal\content_import\Form\AddContentImport'
+  requirements:
+    _permission: 'access administration pages'
+  options:
+    _admin_route: TRUE
+content_import.edit_entity:
+  path: '/admin/config/system/content-import/edit/{id}'
+  defaults:
+    _form: 'Drupal\content_import\Form\AddContentImport'
+    _title: 'Edit content import'
+  requirements:
+    _permission: 'access administration pages'
+  options:
+    _admin_route: TRUE
