@@ -427,7 +427,8 @@ class AddContentImport extends FormBase {
    */
   function addOptionToSelect($element_type) {
     //add options entitty
-    if ($selectedValue = $element_type) {
+    if ($element_type  && $element_type != 'none') {
+      $selectedValue = $element_type;
       if($selectedValue == 'node'){
         $types = [];
         $contentTypes = $this->entityTypeManager->getStorage('node_type')->loadMultiple();
