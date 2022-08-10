@@ -213,7 +213,8 @@ class AddContentImport extends FormBase {
    * @return void
    */
   public function validateForm(array &$form, FormStateInterface $form_state)
-  {}
+  {
+  }
 
   /**
    * @param array $form
@@ -283,6 +284,7 @@ class AddContentImport extends FormBase {
 
       $data = BatchController::csvtoarray_validate($inputFileName);
 
+      dpm($data);
       if (empty($data)) {
         \Drupal::messenger()->addError($this->t('el archivo esta vacio o no tiene la estructura'));
       }else{
@@ -458,5 +460,35 @@ class AddContentImport extends FormBase {
       $opt = ['none' => 'Select an option'];
     }
     return $opt;
+  }
+
+  public function csvtoarray_validate($filename, $delimiter = ';') {
+
+    /* Load the object of the file by it's fid */
+
+
+    if (!file_exists($filename) || !is_readable($filename)) {
+      return FALSE;
+    }
+    $row = [];
+    $header = [];
+    if (($handle = fopen($filename, 'r')) !== FALSE) {
+      while (($row = fgetcsv($handle, 1000, $delimiter)) !== FALSE) {
+        if (empty($header)) {
+          $row[0] = preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $row[0]);
+          $header = $row;
+        }
+        else {
+          if (count($header) == count($row)) {
+            $data[] = array_combine($header, $row);
+            fclose($handle);
+            return $data;
+          }else{
+            return false;
+          }
+        }
+      }
+    }
+    return false;
   }
 }

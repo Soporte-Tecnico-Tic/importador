@@ -13,20 +13,23 @@ class BatchController extends ControllerBase {
    *
    * @return array|false
    */
-  public static function csvtoarray_validate($filename, $delimiter = ',') {
-    /* Load the object of the file by it's fid */
-    if (!file_exists($filename) || !is_readable($filename)) {
+  public static function csvtoarray_validate($filename, $delimiter = ';') {
 
+    if (!file_exists($filename) || !is_readable($filename)) {
       return FALSE;
     }
+    $header = [];
     if (($handle = fopen($filename, 'r')) !== FALSE) {
       while (($row = fgetcsv($handle, 1000, $delimiter)) !== FALSE) {
-        $data[] = $row;
+        if (empty($header)) {
+          $header = preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $row);
+        }else{
+          $data[] = array_combine($header, $row);
+          }
+        }
       }
       fclose($handle);
       return $data;
-    }
-    return false;
   }
 
   /**
@@ -37,7 +40,7 @@ class BatchController extends ControllerBase {
    */
   static function process_files($data, $fields,$type, &$context) {
 
-    $context['message'] = 'Loading ' . $data[0];
+    $context['message'] = 'Loading ';
     try {
       $node = \Drupal\node\Entity\Node::create(['type' => $type]);
       foreach ($fields as $field) {
