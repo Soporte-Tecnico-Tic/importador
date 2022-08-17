@@ -65,6 +65,15 @@ class AddContentImport extends FormBase {
       if(!$form_state->get('n_fields')){
         $form_state->set('n_fields',sizeof($array_fields));
       }
+      if(!$form_state->get('options_file')){
+        if ($file = File::load($result->file)) {
+          $file->setPermanent();
+          $file->save();
+          $inputFileName = \Drupal::service('file_system')
+            ->realpath($file->getFileUri());
+          $form_state->set('options_file',BatchController::csvtoarray_validate_getheader($inputFileName));
+        }
+      }
     }
 
     $form['name-csv'] = [
@@ -143,7 +152,7 @@ class AddContentImport extends FormBase {
 
     $num_fields = intval($form_state->get('n_fields'));
     if($num_fields == NULL){
-      $num_fields = 2;
+      $num_fields = 0;
       $form_state->set('n_fields', $num_fields);
     }
 
@@ -158,12 +167,13 @@ class AddContentImport extends FormBase {
           '#title' => $this->t('field ID'),
           '#options' => $options,
 
-          '#default_value' => $array_fields ? $array_fields[$i]['id'] : '',
+          '#default_value' => $array_fields ? $array_fields[$i]['id'] : 'none',
         ];
         $form['fields'][$i]['name_field-'.$i] = [
-          '#type' => 'textfield',
+          '#type' => 'select',
           '#title' => $this->t('excel column'),
-          '#default_value' => $array_fields ? $array_fields[$i]['value']: '',
+          '#options' => $form_state->get('options_file'),
+          '#default_value' => $array_fields ? $array_fields[$i]['value']: 'none',
         ];
         $form['fields'][$i]['remove_field-'.$i] = [
           '#type' => 'submit',
@@ -284,7 +294,6 @@ class AddContentImport extends FormBase {
 
       $data = BatchController::csvtoarray_validate($inputFileName);
 
-      dpm($data);
       if (empty($data)) {
         \Drupal::messenger()->addError($this->t('el archivo esta vacio o no tiene la estructura'));
       }else{
@@ -337,6 +346,13 @@ class AddContentImport extends FormBase {
   public function addFieldSubmit(array &$form, FormStateInterface &$form_state) {
     $_SESSION['import_element_type'] = $form_state->getValue('element_type');
     $_SESSION['import_options'] = $form_state->getValue('options') ;
+    if ($file = File::load($form_state->getValue('file_csv')[0])) {
+      $file->setPermanent();
+      $file->save();
+      $inputFileName = \Drupal::service('file_system')
+        ->realpath($file->getFileUri());
+      $form_state->set('options_file', BatchController::csvtoarray_validate_getheader($inputFileName));
+    }
 
     $num_fields = intval($form_state->get('n_fields'));
     $num_fields++;
@@ -462,33 +478,4 @@ class AddContentImport extends FormBase {
     return $opt;
   }
 
-  public function csvtoarray_validate($filename, $delimiter = ';') {
-
-    /* Load the object of the file by it's fid */
-
-
-    if (!file_exists($filename) || !is_readable($filename)) {
-      return FALSE;
-    }
-    $row = [];
-    $header = [];
-    if (($handle = fopen($filename, 'r')) !== FALSE) {
-      while (($row = fgetcsv($handle, 1000, $delimiter)) !== FALSE) {
-        if (empty($header)) {
-          $row[0] = preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $row[0]);
-          $header = $row;
-        }
-        else {
-          if (count($header) == count($row)) {
-            $data[] = array_combine($header, $row);
-            fclose($handle);
-            return $data;
-          }else{
-            return false;
-          }
-        }
-      }
-    }
-    return false;
-  }
 }

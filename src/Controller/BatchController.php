@@ -31,7 +31,27 @@ class BatchController extends ControllerBase {
       fclose($handle);
       return $data;
   }
+  public function csvtoarray_validate_getheader($filename, $delimiter = ';') {
 
+    /* Load the object of the file by it's fid */
+
+
+    if (!file_exists($filename) || !is_readable($filename)) {
+      return FALSE;
+    }
+    $row = [];
+    $header = [];
+    if (($handle = fopen($filename, 'r')) !== FALSE) {
+      while (($row = fgetcsv($handle, 1000, $delimiter)) !== FALSE) {
+        if (empty($header)) {
+          $row[0] = preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $row[0]);
+          $header = array_combine($row,$row);
+          return ['none' => 'none'] + $header;
+        }
+      }
+    }
+    return false;
+  }
   /**
    * @param $data
    * @param $fields
