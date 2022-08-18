@@ -315,7 +315,8 @@ class AddContentImport extends FormBase {
             [
               $file,
               $fields,
-             $values['options']
+              $values['options'],
+              $values['element_type'],
             ]
           ];
         }
@@ -422,8 +423,11 @@ class AddContentImport extends FormBase {
         $bundle = 'user';
       }
       $entityFieldManager = \Drupal::service('entity_field.manager');
+      dpm($entityFieldManager->getFieldDefinitions($options, $bundle));
       foreach ($entityFieldManager->getFieldDefinitions($options, $bundle) as $field_name => $field_definition) {
+
         if (!empty($field_definition->getTargetBundle())) {
+          dpm(reset($field_definition->getSettings()['handler_settings']['target_bundles']));
           //$bundleFields[$field_name]['type'] = $field_definition->getType();
           $bundleFields[$field_name] = $field_definition->getLabel();
         }

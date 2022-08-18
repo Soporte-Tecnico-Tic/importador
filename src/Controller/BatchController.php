@@ -3,6 +3,7 @@
 namespace Drupal\content_import\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\taxonomy\Entity\Term;
 
 
 class BatchController extends ControllerBase {
@@ -58,22 +59,47 @@ class BatchController extends ControllerBase {
    * @param $type
    * @param $context
    */
-  static function process_files($data, $fields,$type, &$context) {
+  static function process_files($data, $fields,$bundle,$type, &$context) {
 
     $context['message'] = 'Loading ';
-    try {
-      $node = \Drupal\node\Entity\Node::create(['type' => $type]);
-      foreach ($fields as $field) {
-        $node->set($field['id'], $data[$field['value']]);
+    if($type == 'node'){
+      try {
+        $node = \Drupal\node\Entity\Node::create(['type' => $bundle]);
+        $entityFieldManager = \Drupal::service('entity_field.manager');
+        $fields_node = $entityFieldManager->getFieldDefinitions($type, $bundle);
+
+        foreach ($fields as $field) {
+          $reference = $fields_node[$field['id']];
+          if($reference->getType() == 'entity_reference'){
+
+            //taxonomy
+            if($reference->getSettings()['target_type'] == 'taxonomy_term'){
+              $terms = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadByProperties(['name' => $data[$field['value']]]);
+              $term = reset($terms);
+              if(!empty($term)){
+                $node->set($field['id'], $term->id());
+              }else{
+                $term = Term::create([
+                  'name' => $data[$field['value']],
+                  'vid' => reset($reference['handler_settings']['target_bundles']),
+                ])->enforceIsNew()
+                  ->save();
+                $node->set($field['id'], $term->id());
+              }
+
+            }
+          }else{
+            $node->set($field['id'], $data[$field['value']]);
+          }
+
+        }
+        $node->enforceIsNew();
+        $node->save();
+        $_SESSION['data_saved'] ? $_SESSION['data_saved'] = $_SESSION['data_saved'] + 1 : $_SESSION['data_saved'] = 1;
+      } catch (\Exception $ex) {
+        \Drupal::logger('import content')->error($ex->getMessage());
       }
-      $node->enforceIsNew();
-      $node->save();
-      $_SESSION['data_saved'] ? $_SESSION['data_saved'] = $_SESSION['data_saved'] + 1 : $_SESSION['data_saved'] = 1;
-    } catch (\Exception $ex) {
-      \Drupal::logger('import content')->error($ex->getMessage());
-}
-
-
+    }
   }
 
   /**
