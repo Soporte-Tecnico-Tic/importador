@@ -7,6 +7,6 @@ Funcionalidad principal para importaciones
 - Feature/nombre: Es la rama en la que trabaja cada técnico, desde la que se solicita el PORQUE a develop, cuando el código está terminado y listo para depurar.
 
 # IMPORTANTE:
-Antes de hacer un desarrollo, crea tu rama Feature/nombre y trabaja sobre tu rama hasta terminar.
-Cada día sube tus cambios a tu rama, sin excepción, para tener siempre tu trabajo diario actualizado en tu rama.
-Cuando subas un PR describe brevemente el funcionamiento (no técnico) que se está subiendo, para poder depurar.
+- Antes de hacer un desarrollo, crea tu rama Feature/nombre y trabaja sobre tu rama hasta terminar.
+- Cada día sube tus cambios a tu rama, sin excepción, para tener siempre tu trabajo diario actualizado en tu rama.
+- Cuando subas un PR describe brevemente el funcionamiento (no técnico) que se está subiendo, para poder depurar.
