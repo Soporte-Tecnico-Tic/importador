@@ -3,6 +3,7 @@
 namespace Drupal\content_import\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\node\Entity\Node;
 use Drupal\taxonomy\Entity\Term;
 
 
@@ -81,17 +82,24 @@ class BatchController extends ControllerBase {
               }else{
                 $term = Term::create([
                   'name' => $data[$field['value']],
-                  'vid' => reset($reference['handler_settings']['target_bundles']),
+                  'vid' => reset($reference->getSettings()['handler_settings']['target_bundles']),
                 ])->enforceIsNew()
                   ->save();
                 $node->set($field['id'], $term->id());
               }
 
             }
+            //node
+            if($reference->getSettings()['target_type'] == 'node'){
+              $terms = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['title' => $data[$field['value']]]);
+              $term = reset($terms);
+              if(!empty($term)){
+                $node->set($field['id'], $term->id());
+              }
+            }
           }else{
             $node->set($field['id'], $data[$field['value']]);
           }
-
         }
         $node->enforceIsNew();
         $node->save();
