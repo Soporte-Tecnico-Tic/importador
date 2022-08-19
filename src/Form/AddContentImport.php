@@ -65,6 +65,15 @@ class AddContentImport extends FormBase {
       if(!$form_state->get('n_fields')){
         $form_state->set('n_fields',sizeof($array_fields));
       }
+      if(!$form_state->get('options_file')){
+        if ($file = File::load($result->file)) {
+          $file->setPermanent();
+          $file->save();
+          $inputFileName = \Drupal::service('file_system')
+            ->realpath($file->getFileUri());
+          $form_state->set('options_file',BatchController::csvtoarray_validate_getheader($inputFileName));
+        }
+      }
     }
 
     $form['name-csv'] = [
@@ -143,7 +152,7 @@ class AddContentImport extends FormBase {
 
     $num_fields = intval($form_state->get('n_fields'));
     if($num_fields == NULL){
-      $num_fields = 2;
+      $num_fields = 0;
       $form_state->set('n_fields', $num_fields);
     }
 
@@ -158,12 +167,13 @@ class AddContentImport extends FormBase {
           '#title' => $this->t('field ID'),
           '#options' => $options,
 
-          '#default_value' => $array_fields ? $array_fields[$i]['id'] : '',
+          '#default_value' => $array_fields ? $array_fields[$i]['id'] : 'none',
         ];
         $form['fields'][$i]['name_field-'.$i] = [
-          '#type' => 'textfield',
+          '#type' => 'select',
           '#title' => $this->t('excel column'),
-          '#default_value' => $array_fields ? $array_fields[$i]['value']: '',
+          '#options' => $form_state->get('options_file'),
+          '#default_value' => $array_fields ? $array_fields[$i]['value']: 'none',
         ];
         $form['fields'][$i]['remove_field-'.$i] = [
           '#type' => 'submit',
@@ -213,7 +223,8 @@ class AddContentImport extends FormBase {
    * @return void
    */
   public function validateForm(array &$form, FormStateInterface $form_state)
-  {}
+  {
+  }
 
   /**
    * @param array $form
@@ -304,7 +315,8 @@ class AddContentImport extends FormBase {
             [
               $file,
               $fields,
-             $values['options']
+              $values['options'],
+              $values['element_type'],
             ]
           ];
         }
@@ -335,6 +347,13 @@ class AddContentImport extends FormBase {
   public function addFieldSubmit(array &$form, FormStateInterface &$form_state) {
     $_SESSION['import_element_type'] = $form_state->getValue('element_type');
     $_SESSION['import_options'] = $form_state->getValue('options') ;
+    if ($file = File::load($form_state->getValue('file_csv')[0])) {
+      $file->setPermanent();
+      $file->save();
+      $inputFileName = \Drupal::service('file_system')
+        ->realpath($file->getFileUri());
+      $form_state->set('options_file', BatchController::csvtoarray_validate_getheader($inputFileName));
+    }
 
     $num_fields = intval($form_state->get('n_fields'));
     $num_fields++;
@@ -404,8 +423,11 @@ class AddContentImport extends FormBase {
         $bundle = 'user';
       }
       $entityFieldManager = \Drupal::service('entity_field.manager');
+      dpm($entityFieldManager->getFieldDefinitions($options, $bundle));
       foreach ($entityFieldManager->getFieldDefinitions($options, $bundle) as $field_name => $field_definition) {
+
         if (!empty($field_definition->getTargetBundle())) {
+          dpm(reset($field_definition->getSettings()['handler_settings']['target_bundles']));
           //$bundleFields[$field_name]['type'] = $field_definition->getType();
           $bundleFields[$field_name] = $field_definition->getLabel();
         }
@@ -427,7 +449,8 @@ class AddContentImport extends FormBase {
    */
   function addOptionToSelect($element_type) {
     //add options entitty
-    if ($selectedValue = $element_type) {
+    if ($element_type  && $element_type != 'none') {
+      $selectedValue = $element_type;
       if($selectedValue == 'node'){
         $types = [];
         $contentTypes = $this->entityTypeManager->getStorage('node_type')->loadMultiple();
@@ -458,4 +481,5 @@ class AddContentImport extends FormBase {
     }
     return $opt;
   }
+
 }

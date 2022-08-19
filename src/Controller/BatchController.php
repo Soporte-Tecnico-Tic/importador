@@ -3,6 +3,7 @@
 namespace Drupal\content_import\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\taxonomy\Entity\Term;
 
 
 class BatchController extends ControllerBase {
@@ -13,44 +14,92 @@ class BatchController extends ControllerBase {
    *
    * @return array|false
    */
-  public static function csvtoarray_validate($filename, $delimiter = ',') {
-    /* Load the object of the file by it's fid */
-    if (!file_exists($filename) || !is_readable($filename)) {
+  public static function csvtoarray_validate($filename, $delimiter = ';') {
 
+    if (!file_exists($filename) || !is_readable($filename)) {
       return FALSE;
     }
+    $header = [];
     if (($handle = fopen($filename, 'r')) !== FALSE) {
       while (($row = fgetcsv($handle, 1000, $delimiter)) !== FALSE) {
-        $data[] = $row;
+        if (empty($header)) {
+          $header = preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $row);
+        }else{
+          $data[] = array_combine($header, $row);
+          }
+        }
       }
       fclose($handle);
       return $data;
+  }
+  public function csvtoarray_validate_getheader($filename, $delimiter = ';') {
+
+    /* Load the object of the file by it's fid */
+
+
+    if (!file_exists($filename) || !is_readable($filename)) {
+      return FALSE;
+    }
+    $row = [];
+    $header = [];
+    if (($handle = fopen($filename, 'r')) !== FALSE) {
+      while (($row = fgetcsv($handle, 1000, $delimiter)) !== FALSE) {
+        if (empty($header)) {
+          $row[0] = preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $row[0]);
+          $header = array_combine($row,$row);
+          return ['none' => 'none'] + $header;
+        }
+      }
     }
     return false;
   }
-
   /**
    * @param $data
    * @param $fields
    * @param $type
    * @param $context
    */
-  static function process_files($data, $fields,$type, &$context) {
+  static function process_files($data, $fields,$bundle,$type, &$context) {
 
-    $context['message'] = 'Loading ' . $data[0];
-    try {
-      $node = \Drupal\node\Entity\Node::create(['type' => $type]);
-      foreach ($fields as $field) {
-        $node->set($field['id'], $data[$field['value']]);
+    $context['message'] = 'Loading ';
+    if($type == 'node'){
+      try {
+        $node = \Drupal\node\Entity\Node::create(['type' => $bundle]);
+        $entityFieldManager = \Drupal::service('entity_field.manager');
+        $fields_node = $entityFieldManager->getFieldDefinitions($type, $bundle);
+
+        foreach ($fields as $field) {
+          $reference = $fields_node[$field['id']];
+          if($reference->getType() == 'entity_reference'){
+
+            //taxonomy
+            if($reference->getSettings()['target_type'] == 'taxonomy_term'){
+              $terms = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadByProperties(['name' => $data[$field['value']]]);
+              $term = reset($terms);
+              if(!empty($term)){
+                $node->set($field['id'], $term->id());
+              }else{
+                $term = Term::create([
+                  'name' => $data[$field['value']],
+                  'vid' => reset($reference['handler_settings']['target_bundles']),
+                ])->enforceIsNew()
+                  ->save();
+                $node->set($field['id'], $term->id());
+              }
+
+            }
+          }else{
+            $node->set($field['id'], $data[$field['value']]);
+          }
+
+        }
+        $node->enforceIsNew();
+        $node->save();
+        $_SESSION['data_saved'] ? $_SESSION['data_saved'] = $_SESSION['data_saved'] + 1 : $_SESSION['data_saved'] = 1;
+      } catch (\Exception $ex) {
+        \Drupal::logger('import content')->error($ex->getMessage());
       }
-      $node->enforceIsNew();
-      $node->save();
-      $_SESSION['data_saved'] ? $_SESSION['data_saved'] = $_SESSION['data_saved'] + 1 : $_SESSION['data_saved'] = 1;
-    } catch (\Exception $ex) {
-      \Drupal::logger('import content')->error($ex->getMessage());
-}
-
-
+    }
   }
 
   /**
