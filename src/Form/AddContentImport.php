@@ -142,7 +142,7 @@ class AddContentImport extends FormBase {
     ];
 
     //get options to id
-    $options = $this->loadIdFields($_SESSION['import_element_type'], $_SESSION['import_options']);
+    $options = $this->loadIdFields($_SESSION['import_element_type'], $_SESSION['import_options'],$form_state);
 
     $elements_removed = $form_state->get('elements_removed');
     if($elements_removed == NULL){
@@ -165,14 +165,14 @@ class AddContentImport extends FormBase {
         $form['fields'][$i]['id_field-'.$i] = [
           '#type' => 'select',
           '#title' => $this->t('field ID'),
-          '#options' => $options,
+          '#options' =>$form_state->getValue('id_field-'.$i) ? [$form_state->getValue('id_field-'.$i) => $form_state->getValue('id_field-'.$i)] + $options:$options,
 
           '#default_value' => $array_fields ? $array_fields[$i]['id'] : 'none',
         ];
         $form['fields'][$i]['name_field-'.$i] = [
           '#type' => 'select',
           '#title' => $this->t('excel column'),
-          '#options' => $form_state->get('options_file'),
+          '#options' =>$form_state->getValue('name_field-'.$i) ? [$form_state->getValue('name_field-'.$i) => $form_state->getValue('name_field-'.$i)] +  $form_state->get('options_file'):$form_state->get('options_file'),
           '#default_value' => $array_fields ? $array_fields[$i]['value']: 'none',
         ];
         $form['fields'][$i]['remove_field-'.$i] = [
@@ -352,7 +352,19 @@ class AddContentImport extends FormBase {
       $file->save();
       $inputFileName = \Drupal::service('file_system')
         ->realpath($file->getFileUri());
-      $form_state->set('options_file', BatchController::csvtoarray_validate_getheader($inputFileName));
+
+      $options = BatchController::csvtoarray_validate_getheader($inputFileName);
+
+      $values = $form_state->getValues();
+      $num_fields = $form_state->get('n_fields');
+      $elements_removed = $form_state->get('elements_removed');
+      for ($i = 0; $i < $num_fields; $i++) {
+        if(!in_array($i,$elements_removed)){
+          unset($options[$values['name_field-'.$i]]);
+        }
+      }
+
+      $form_state->set('options_file', $options);
     }
 
     $num_fields = intval($form_state->get('n_fields'));
@@ -414,7 +426,7 @@ class AddContentImport extends FormBase {
    *
    * @return array|string[]
    */
-  function loadIdFields($options, $bundle){
+  function loadIdFields($options, $bundle,$form_state){
     $none = ['none' => 'Select an option'];
     if (($bundle == 'none' || $options  == 'none') || ($bundle == NULL || $options  == NULL)) {
       return  $none ;
@@ -423,11 +435,8 @@ class AddContentImport extends FormBase {
         $bundle = 'user';
       }
       $entityFieldManager = \Drupal::service('entity_field.manager');
-      dpm($entityFieldManager->getFieldDefinitions($options, $bundle));
       foreach ($entityFieldManager->getFieldDefinitions($options, $bundle) as $field_name => $field_definition) {
-
         if (!empty($field_definition->getTargetBundle())) {
-          dpm(reset($field_definition->getSettings()['handler_settings']['target_bundles']));
           //$bundleFields[$field_name]['type'] = $field_definition->getType();
           $bundleFields[$field_name] = $field_definition->getLabel();
         }
@@ -435,6 +444,15 @@ class AddContentImport extends FormBase {
       if($options == 'node'){
         $bundleFields['title'] = 'Title';
         $bundleFields['status'] = 'Published';
+      }
+
+      $values = $form_state->getValues();
+      $num_fields = $form_state->get('n_fields');
+      $elements_removed = $form_state->get('elements_removed');
+      for ($i = 0; $i < $num_fields; $i++) {
+        if(!in_array($i,$elements_removed)){
+          unset($bundleFields[$values['id_field-'.$i]]);
+        }
       }
 
       return  $none + $bundleFields;
