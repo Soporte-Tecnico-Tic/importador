@@ -9,4 +9,4 @@ dev version
 * composer require soporte-tecnico-tic/importador:@dev
 
 ## MÁS INFO:
-### https://github.com/Soporte-Tecnico-Tic/importador
+### https://github.com/Soporte-Tecnico-Tic/importador/releases
