@@ -67,8 +67,8 @@ class AddContentImport extends FormBase {
       }
       if(!$form_state->get('options_file')){
         if ($file = File::load($result->file)) {
-          $file->setPermanent();
-          $file->save();
+          //$file->setPermanent();
+          //$file->save();
           $inputFileName = \Drupal::service('file_system')
             ->realpath($file->getFileUri());
           $form_state->set('options_file',BatchController::csvtoarray_validate_getheader($inputFileName));
