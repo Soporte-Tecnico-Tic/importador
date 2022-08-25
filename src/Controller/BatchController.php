@@ -33,7 +33,7 @@ class BatchController extends ControllerBase {
       fclose($handle);
       return $data;
   }
-  public function csvtoarray_validate_getheader($filename, $delimiter = ';') {
+  public static function csvtoarray_validate_getheader($filename, $delimiter = ';') {
 
     /* Load the object of the file by it's fid */
 

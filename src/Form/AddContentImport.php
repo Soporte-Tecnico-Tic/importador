@@ -89,10 +89,9 @@ class AddContentImport extends FormBase {
       '#type' => 'managed_file',
       '#title' => $this->t('File csv'),
       '#upload_location' => 'public://content-importer/',
-      '#upload_validators' => array(
-        'file_validate_extensions' => array('csv'),
-        'file_validate_size' => 1024,
-      ),
+      '#upload_validators' => [
+        'file_validate_extensions' => ['csv','test']
+      ],
       '#default_value' => $result ? [$result->file] : NULL
     ];
 
