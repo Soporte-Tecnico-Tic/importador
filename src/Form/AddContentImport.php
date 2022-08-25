@@ -67,8 +67,8 @@ class AddContentImport extends FormBase {
       }
       if(!$form_state->get('options_file')){
         if ($file = File::load($result->file)) {
-          $file->setPermanent();
-          $file->save();
+          //$file->setPermanent();
+          //$file->save();
           $inputFileName = \Drupal::service('file_system')
             ->realpath($file->getFileUri());
           $form_state->set('options_file',BatchController::csvtoarray_validate_getheader($inputFileName));
@@ -237,11 +237,12 @@ class AddContentImport extends FormBase {
 
     $values = $form_state->getValues();
     if ($file = File::load($values['file_csv'][0])) {
-      $file->setPermanent();
-      $file->save();
+      //$file->setPermanent();
+      //$file->save();
+      $insert['file'] =  $file->id();
     }
 
-    $insert['file'] =  $file->id();
+
     $insert['name'] = $values['name'];
     $insert['type_element'] = $values['element_type'];
     $insert['element']  = $values['options'];
@@ -287,8 +288,8 @@ class AddContentImport extends FormBase {
   public function importSubmit(array &$form, FormStateInterface $form_state)
   {
     if ($file = File::load($form_state->getValue('file_csv')[0])) {
-      $file->setPermanent();
-      $file->save();
+     // $file->setPermanent();
+      //$file->save();
       $inputFileName = \Drupal::service('file_system')->realpath($file->getFileUri());
 
       $data = BatchController::csvtoarray_validate($inputFileName);
@@ -347,8 +348,8 @@ class AddContentImport extends FormBase {
     $_SESSION['import_element_type'] = $form_state->getValue('element_type');
     $_SESSION['import_options'] = $form_state->getValue('options') ;
     if ($file = File::load($form_state->getValue('file_csv')[0])) {
-      $file->setPermanent();
-      $file->save();
+      //$file->setPermanent();
+      //$file->save();
       $inputFileName = \Drupal::service('file_system')
         ->realpath($file->getFileUri());
 
@@ -448,11 +449,14 @@ class AddContentImport extends FormBase {
       $values = $form_state->getValues();
       $num_fields = $form_state->get('n_fields');
       $elements_removed = $form_state->get('elements_removed');
-      for ($i = 0; $i < $num_fields; $i++) {
-        if(!in_array($i,$elements_removed)){
-          unset($bundleFields[$values['id_field-'.$i]]);
+      if($elements_removed){
+        for ($i = 0; $i < $num_fields; $i++) {
+          if(!in_array($i,$elements_removed)){
+            unset($bundleFields[$values['id_field-'.$i]]);
+          }
         }
       }
+
 
       return  $none + $bundleFields;
     }
