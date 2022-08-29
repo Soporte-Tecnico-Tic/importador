@@ -80,12 +80,14 @@ class BatchController extends ControllerBase {
               if(!empty($term)){
                 $node->set($field['id'], $term->id());
               }else{
-                $term = Term::create([
-                  'name' => $data[$field['value']],
-                  'vid' => reset($reference->getSettings()['handler_settings']['target_bundles']),
-                ])->enforceIsNew()
-                  ->save();
-                $node->set($field['id'], $term->id());
+                if($field['value']){
+                  $term = Term::create([
+                    'name' => $data[$field['value']],
+                    'vid' => reset($reference->getSettings()['handler_settings']['target_bundles']),
+                  ])->enforceIsNew()
+                    ->save();
+                  $node->set($field['id'], $term->id());
+                }
               }
 
             }
@@ -98,7 +100,9 @@ class BatchController extends ControllerBase {
               }
             }
           }else{
-            $node->set($field['id'], $data[$field['value']]);
+            if($field['value']){
+              $node->set($field['id'], $data[$field['value']]);
+            }
           }
         }
         $node->enforceIsNew();
