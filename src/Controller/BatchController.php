@@ -112,6 +112,56 @@ class BatchController extends ControllerBase {
         \Drupal::logger('import content')->error($ex->getMessage());
       }
     }
+    if($type == 'taxonomy_term'){
+      try {
+        $node = Term::create(['vid' => $bundle]);
+        $entityFieldManager = \Drupal::service('entity_field.manager');
+        $fields_node = $entityFieldManager->getFieldDefinitions($type, $bundle);
+
+        foreach ($fields as $field) {
+          $reference = $fields_node[$field['id']];
+          if($reference->getType() == 'entity_reference'){
+
+            //taxonomy
+            if($reference->getSettings()['target_type'] == 'taxonomy_term'){
+              $terms = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadByProperties(['name' => $data[$field['value']]]);
+              $term = reset($terms);
+              if(!empty($term)){
+                $node->set($field['id'], $term->id());
+              }else{
+                if($field['value']){
+                  \Drupal::logger('acasc')->error($field['value']);
+                  $term = Term::create([
+                    'name' => $data[$field['value']],
+                    'vid' => reset($reference->getSettings()['handler_settings']['target_bundles']),
+                  ])->enforceIsNew()
+                    ->save();
+                  $node->set($field['id'], $term->id());
+                }
+              }
+
+            }
+            //node
+            if($reference->getSettings()['target_type'] == 'node'){
+              $terms = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['title' => $data[$field['value']]]);
+              $term = reset($terms);
+              if(!empty($term)){
+                $node->set($field['id'], $term->id());
+              }
+            }
+          }else{
+            if($field['value']){
+              $node->set($field['id'], $data[$field['value']]);
+            }
+          }
+        }
+        $node->enforceIsNew();
+        $node->save();
+        $_SESSION['data_saved'] ? $_SESSION['data_saved'] = $_SESSION['data_saved'] + 1 : $_SESSION['data_saved'] = 1;
+      } catch (\Exception $ex) {
+        \Drupal::logger('import content')->error($ex->getMessage());
+      }
+    }
   }
 
   /**
