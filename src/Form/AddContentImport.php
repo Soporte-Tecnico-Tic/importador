@@ -141,6 +141,7 @@ class AddContentImport extends FormBase {
     ];
 
     //get options to id
+
     $options = $this->loadIdFields($_SESSION['import_element_type'], $_SESSION['import_options'],$form_state);
 
     $elements_removed = $form_state->get('elements_removed');
@@ -445,8 +446,12 @@ class AddContentImport extends FormBase {
         $bundleFields['title'] = 'Title';
         $bundleFields['status'] = 'Published';
       }
+      if($options == 'taxonomy_term'){
+        $bundleFields['name'] = 'name';
+      }
 
       $values = $form_state->getValues();
+
       $num_fields = $form_state->get('n_fields');
       $elements_removed = $form_state->get('elements_removed');
       if($elements_removed){
@@ -454,6 +459,10 @@ class AddContentImport extends FormBase {
           if(!in_array($i,$elements_removed)){
             unset($bundleFields[$values['id_field-'.$i]]);
           }
+        }
+      }else{
+        for ($i = 0; $i < $num_fields; $i++) {
+          unset($bundleFields[$values['id_field-'.$i]]);
         }
       }
 
