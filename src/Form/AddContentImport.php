@@ -311,6 +311,7 @@ class AddContentImport extends FormBase {
           }
         }
         foreach ($data as $file) {
+
           $operations[] = [
             '\Drupal\content_import\Controller\BatchController::process_files',
             [
@@ -320,6 +321,7 @@ class AddContentImport extends FormBase {
               $values['element_type'],
             ]
           ];
+
         }
 
       }
