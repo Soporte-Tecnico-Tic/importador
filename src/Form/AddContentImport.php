@@ -464,7 +464,10 @@ class AddContentImport extends FormBase {
         }
       }else{
         for ($i = 0; $i < $num_fields; $i++) {
-          unset($bundleFields[$values['id_field-'.$i]]);
+          if(isset($values['id_field-'.$i])){
+            unset($bundleFields[$values['id_field-'.$i]]);
+          }
+
         }
       }
 

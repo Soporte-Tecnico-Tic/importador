@@ -90,33 +90,40 @@ class BatchController extends ControllerBase {
 
               //taxonomy
               if($reference->getSettings()['target_type'] == 'taxonomy_term'){
-                $terms = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadByProperties(['name' => $data[$field['value']]]);
-                $term = reset($terms);
-                if(!empty($term)){
-                  $node->set($field['id'], $term->id());
-                }else{
-                  if($field['value']){
-                    $term = Term::create([
-                      'name' => $data[$field['value']],
-                      'vid' => reset($reference->getSettings()['handler_settings']['target_bundles']),
-                    ])->enforceIsNew()
-                      ->save();
+                if(!empty($data[$field['value']])){
+                  $terms = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadByProperties(['name' => $data[$field['value']]]);
+                  $term = reset($terms);
+                  if(!empty($term)){
                     $node->set($field['id'], $term->id());
+                  }else{
+                    if($field['value']){
+                      $term = Term::create([
+                        'name' => $data[$field['value']],
+                        'vid' => reset($reference->getSettings()['handler_settings']['target_bundles']),
+                      ])->enforceIsNew()
+                        ->save();
+                      $node->set($field['id'], $term->id());
+                    }
                   }
                 }
 
               }
               //node
               if($reference->getSettings()['target_type'] == 'node'){
-                $terms = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['title' => $data[$field['value']]]);
-                $term = reset($terms);
-                if(!empty($term)){
-                  $node->set($field['id'], $term->id());
+                if(!empty($data[$field['value']])){
+                  $terms = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['title' => $data[$field['value']]]);
+                  $term = reset($terms);
+                  if(!empty($term)){
+                    $node->set($field['id'], $term->id());
+                  }
                 }
+
               }
             }else{
               if($field['value']){
-                $node->set($field['id'], $data[$field['value']]);
+                if(!empty($data[$field['value']])){
+                  $node->set($field['id'], $data[$field['value']]);
+                }
               }
             }
           }
