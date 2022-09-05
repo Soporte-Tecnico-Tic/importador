@@ -25,3 +25,12 @@ content_import.edit_entity:
     _permission: 'access administration pages'
   options:
     _admin_route: TRUE
+content_import.remove_entity:
+  path: '/admin/config/system/content-import/remove/{id}'
+  defaults:
+    _controller: \Drupal\content_import\Controller\ContentImportController::removeImports
+    _title: 'Edit content import'
+  requirements:
+    _permission: 'access administration pages'
+  options:
+    _admin_route: TRUE
