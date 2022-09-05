@@ -72,9 +72,12 @@ class BatchController extends ControllerBase {
         }
       }
 
-      $node_exists = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['title' => $data[$value_exist]]);
-      $node_exist = reset($node_exists);
-
+      if($data[$value_exist]){
+        $node_exists = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['title' => $data[$value_exist]]);
+        $node_exist = reset($node_exists);
+      }else{
+      \Drupal::messenger()->addError('el campo TITLE es obligatorio para crear un NODO');
+    }
       if(empty($node_exist)){
         try {
           $node = \Drupal\node\Entity\Node::create(['type' => $bundle]);
@@ -87,33 +90,40 @@ class BatchController extends ControllerBase {
 
               //taxonomy
               if($reference->getSettings()['target_type'] == 'taxonomy_term'){
-                $terms = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadByProperties(['name' => $data[$field['value']]]);
-                $term = reset($terms);
-                if(!empty($term)){
-                  $node->set($field['id'], $term->id());
-                }else{
-                  if($field['value']){
-                    $term = Term::create([
-                      'name' => $data[$field['value']],
-                      'vid' => reset($reference->getSettings()['handler_settings']['target_bundles']),
-                    ])->enforceIsNew()
-                      ->save();
+                if(!empty($data[$field['value']])){
+                  $terms = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadByProperties(['name' => $data[$field['value']]]);
+                  $term = reset($terms);
+                  if(!empty($term)){
                     $node->set($field['id'], $term->id());
+                  }else{
+                    if($field['value']){
+                      $term = Term::create([
+                        'name' => $data[$field['value']],
+                        'vid' => reset($reference->getSettings()['handler_settings']['target_bundles']),
+                      ])->enforceIsNew()
+                        ->save();
+                      $node->set($field['id'], $term->id());
+                    }
                   }
                 }
 
               }
               //node
               if($reference->getSettings()['target_type'] == 'node'){
-                $terms = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['title' => $data[$field['value']]]);
-                $term = reset($terms);
-                if(!empty($term)){
-                  $node->set($field['id'], $term->id());
+                if(!empty($data[$field['value']])){
+                  $terms = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['title' => $data[$field['value']]]);
+                  $term = reset($terms);
+                  if(!empty($term)){
+                    $node->set($field['id'], $term->id());
+                  }
                 }
+
               }
             }else{
               if($field['value']){
-                $node->set($field['id'], $data[$field['value']]);
+                if(!empty($data[$field['value']])){
+                  $node->set($field['id'], $data[$field['value']]);
+                }
               }
             }
           }
@@ -135,8 +145,13 @@ class BatchController extends ControllerBase {
         }
       }
 
-      $tax_exists = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadByProperties(['name' => $data[$value_exist]]);
-      $tax_exist = reset($tax_exists);
+      if($data[$value_exist]){
+        $tax_exists = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadByProperties(['name' => $data[$value_exist]]);
+        $tax_exist = reset($tax_exists);
+      }else{
+        \Drupal::messenger()->addError('el campo NAME es obligatorio para crear un TERMINO');
+      }
+
 
       if(empty($tax_exist)){
         try {
