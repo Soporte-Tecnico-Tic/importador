@@ -78,7 +78,8 @@ class BatchController extends ControllerBase {
       }else{
       \Drupal::messenger()->addError('el campo TITLE es obligatorio para crear un NODO');
     }
-      if(empty($node_exist)){
+      \Drupal::logger('ed')->error($data[$value_exist]);
+      if(empty($node_exist) && $data[$value_exist]){
         try {
           $node = \Drupal\node\Entity\Node::create(['type' => $bundle]);
           $entityFieldManager = \Drupal::service('entity_field.manager');
@@ -100,7 +101,8 @@ class BatchController extends ControllerBase {
                       $term = Term::create([
                         'name' => $data[$field['value']],
                         'vid' => reset($reference->getSettings()['handler_settings']['target_bundles']),
-                      ])->enforceIsNew()
+                      ]);
+                        $term->enforceIsNew()
                         ->save();
                       $node->set($field['id'], $term->id());
                     }
@@ -153,7 +155,7 @@ class BatchController extends ControllerBase {
       }
 
 
-      if(empty($tax_exist)){
+      if(empty($tax_exist) && $data[$value_exist]){
         try {
           $node = Term::create(['vid' => $bundle]);
           $entityFieldManager = \Drupal::service('entity_field.manager');
@@ -171,12 +173,11 @@ class BatchController extends ControllerBase {
                   $node->set($field['id'], $term->id());
                 }else{
                   if($field['value']){
-                    \Drupal::logger('acasc')->error($field['value']);
                     $term = Term::create([
                       'name' => $data[$field['value']],
                       'vid' => reset($reference->getSettings()['handler_settings']['target_bundles']),
-                    ])->enforceIsNew()
-                      ->save();
+                    ]);
+                    $term->enforceIsNew()->save();
                     $node->set($field['id'], $term->id());
                   }
                 }
