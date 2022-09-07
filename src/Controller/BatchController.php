@@ -156,7 +156,6 @@ class BatchController extends ControllerBase {
                   $node->set($field['id'], $term->id());
                 }else{
                   if($field['value']){
-                    \Drupal::logger('acasc')->error($field['value']);
                     $term = Term::create([
                       'name' => $data[$field['value']],
                       'vid' => reset($reference->getSettings()['handler_settings']['target_bundles']),
