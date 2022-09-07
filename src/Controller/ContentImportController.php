@@ -4,6 +4,7 @@ namespace Drupal\content_import\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Link;
+use Drupal\file\Entity\File;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
@@ -16,6 +17,18 @@ class ContentImportController extends ControllerBase {
    * @return array
    */
   public function viewImports(){
+
+    $query_fid =  \Drupal::database()->select('content_import_list', 'r');
+
+    $result_fid = $query_fid
+      ->fields('r', ['file'])
+      ->execute();
+    foreach ($result_fid as $item) {
+      if ($file = File::load($item->file)) {
+        $file->setPermanent();
+        $file->save();
+      }
+    }
 
     $header = ['id','Nombre', 'Datos', 'Elemento', 'Tipo Elemento', 'Ult. Importación', 'Editar', 'Eliminar'];
     $query =  \Drupal::database()->select('content_import_list', 'r')
