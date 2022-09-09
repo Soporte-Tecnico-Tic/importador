@@ -78,7 +78,6 @@ class BatchController extends ControllerBase {
       }else{
       \Drupal::messenger()->addError('el campo TITLE es obligatorio para crear un NODO');
     }
-      \Drupal::logger('ed')->error($data[$value_exist]);
       if(empty($node_exist) && $data[$value_exist]){
         try {
           $node = \Drupal\node\Entity\Node::create(['type' => $bundle]);
@@ -122,9 +121,18 @@ class BatchController extends ControllerBase {
 
               }
             }else{
-              if($field['value']){
+              if($reference->getType() == 'datetime'){
                 if(!empty($data[$field['value']])){
-                  $node->set($field['id'], $data[$field['value']]);
+                  $date = explode('/',$data[$field['value']]);
+                  if(sizeof($date)>2){
+                    $node->set($field['id'],$date[2].'-'.$date[1].'-'.$date[0].'T12:00:00' );
+                  }
+                }
+              }else{
+                if($field['value']){
+                  if(!empty($data[$field['value']])){
+                    $node->set($field['id'], $data[$field['value']]);
+                  }
                 }
               }
             }
