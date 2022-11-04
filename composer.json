@@ -2,7 +2,7 @@
 {
   "name": "soporte-tecnico-tic/importador",
   "description": "Funcionalidad principal para importaciones",
-  "type": "drupal-module-core",
+  "type": "drupal-custom-module",
   "minimum-stability": "dev",
   "require": {
     "php": ">=8.0",
